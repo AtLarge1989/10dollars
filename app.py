@@ -89,18 +89,26 @@ def calculate_logic(df, info):
 # --- 4. UI 界面 ---
 st.set_page_config(page_title="10 dollars Seeking Alpha", layout="wide")
 st.title("10 Dollars 带你 Seeking Alpha V0.9")
-# 1. 顶部输入区 (主页面)
-col1, col2 = st.columns([2, 1])
-with col1:
-    raw_input = st.text_input("代码 (AAPL, 700.HK, 600519)", value="AAPL")
-    ticker = format_ticker(raw_input)
-with col2:
-    currency_symbol, mkt_name = get_market_config(ticker)
-    st.write(f"识别结果: **{ticker}**")
-    st.write(f"市场: {mkt_name}")
+# --- 优化后的输入与识别区 ---
+with st.container():
+    # 使用三个列，中间加一个空列做间距，或者调整比例
+    col_in, col_space, col_res = st.columns([3, 0.5, 1.5])
+    
+    with col_in:
+        # 移除输入框上方的默认标签空隙，让它更紧凑
+        raw_input = st.text_input("🔍 输入股票代码", value="AAPL", placeholder="例如: AAPL, 700.HK, 600519")
+        ticker = format_ticker(raw_input)
+    
+    with col_res:
+        # 使用 Markdown 手动调整右侧文字的对齐，增加一点顶部的间距(Padding)
+        currency_symbol, mkt_name = get_market_config(ticker)
+        st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True) # 微调对齐
+        st.markdown(f"**识别结果**: `{ticker}`")
+        st.markdown(f"**市场类型**: `{mkt_name}`")
 
-# 2. 免责声明 (主页面)
-st.caption("⚠️ 免责声明：本工具仅作学习与研究之用，不对任何投资结果负责。")
+# 免责声明紧随其后
+st.caption(f"⚠️ **免责声明**：本工具仅作学习之用，货币单位为 {currency_symbol}。不对任何投资结果负责。")
+st.divider()
 if st.button("🚀 生成全维度分析报告", use_container_width=True, type="primary"):
     with st.spinner(f"正在尝试连接 Yahoo 数据库解析 {ticker}..."):
         
