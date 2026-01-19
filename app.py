@@ -100,7 +100,7 @@ with col2:
     st.write(f"市场: {mkt_name}")
 
 # 2. 免责声明 (主页面)
-st.caption("⚠️ 免责声明：本工具仅作学习与研究之用，不对任何投资结果负责。)
+st.caption("⚠️ 免责声明：本工具仅作学习与研究之用，不对任何投资结果负责。")
 if st.button("🚀 生成全维度分析报告", use_container_width=True, type="primary"):
     with st.spinner(f"正在尝试连接 Yahoo 数据库解析 {ticker}..."):
         
