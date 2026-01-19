@@ -110,41 +110,50 @@ with st.sidebar:
 
 # 主界面
 st.title("10 Dollars 带你 Seeking Alpha V0.9")
+
 if st.button("🚀 生成全维度分析报告", use_container_width=True, type="primary"):
     with st.spinner(f"正在解析 {ticker}..."):
-     # 使用 curl_cffi 模拟 Chrome 浏览器指纹，这是绕过 Yahoo 最新防护的关键
-        session = curl_requests.Session(impersonate="chrome")
+        # 1. 初始化变量，防止后续 NameError
+        df = None
+        tk = None
         
+        # 2. 尝试抓取数据
         try:
+            session = curl_requests.Session(impersonate="chrome")
             tk = yf.Ticker(ticker, session=session)
             df = tk.history(period="3y")
-            
-            if not df.empty:
-                # 后续逻辑保持不变...
-                if isinstance(df.columns, pd.MultiIndex): 
-                    df.columns = df.columns.get_level_values(0)
-                res = calculate_logic(df, tk.info)
-                
-                # ... 显示 UI 的代码 ...
-            else:
-                st.error("未获取到数据，请检查代码或稍后再试。")
         except Exception as e:
-            st.error(f"数据抓取失败: {e}")
-        if not df.empty:
+            st.error(f"📡 网络请求失败: {e}")
+
+        # 3. 核心判断：只有 df 真正拿到数据了，才执行后面的绘图逻辑
+        if df is not None and not df.empty:
+            # 处理 MultiIndex
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
 
-            res = calculate_logic(df, tk.info)
-            name = tk.info.get('shortName') or tk.info.get('longName') or ticker
+            # 计算逻辑
+            # 注意：tk.info 有时也会触发限流报错，建议加个 get 防御
+            try:
+                info_data = tk.info
+                res = calculate_logic(df, info_data)
+                name = info_data.get('shortName') or info_data.get('longName') or ticker
+            except:
+                res = calculate_logic(df, {}) # 如果 info 拿不到，传入空字典防御
+                name = ticker
+
+            # --- 开始渲染 UI ---
             st.header(f"📈 {name} ({ticker}) 分析报告")
 
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("当前价格", f"{currency_symbol} {res['last']:.2f}")
             c2.metric("建议动作", f"{res['sig'][1]} {res['sig'][0]}")
-            pe_val = tk.info.get('trailingPE')
-            ps_val = tk.info.get('priceToSalesTrailing12Months')
+            
+            # 增强 info 数据的防御
+            pe_val = tk.info.get('trailingPE') if tk else None
+            ps_val = tk.info.get('priceToSalesTrailing12Months') if tk else None
             c3.metric("市盈率 PE", f"{pe_val:.2f}" if isinstance(pe_val, (int, float)) else "—")
             c4.metric("市销率 PS", f"{ps_val:.2f}" if isinstance(ps_val, (int, float)) else "—")
+            
             st.divider()
 
             col_left, col_right = st.columns([1, 1.2])
@@ -168,7 +177,9 @@ if st.button("🚀 生成全维度分析报告", use_container_width=True, type=
             with col_right:
                 st.subheader("📥 分批买入建议区间")
                 st.info(f"**诊断依据**：{res['sig'][2]}")
-                z_cons, z_neut, z_aggr = res['zones']['conservative'], res['zones']['neutral'], res['zones']['aggressive']
+                z_cons = res['zones']['conservative']
+                z_neut = res['zones']['neutral']
+                z_aggr = res['zones']['aggressive']
                 st.write(f"🔵 **保守区**: `{currency_symbol} {z_cons[0]:.2f} - {z_cons[1]:.2f}`")
                 st.write(f"🟢 **标准区**: `{currency_symbol} {z_neut[0]:.2f} - {z_neut[1]:.2f}`")
                 st.write(f"🔴 **激进区**: `{currency_symbol} {z_aggr[0]:.2f} - {z_aggr[1]:.2f}`")
@@ -177,9 +188,12 @@ if st.button("🚀 生成全维度分析报告", use_container_width=True, type=
                 a1, a2 = st.columns(2)
                 a1.metric("第一加仓位", f"{currency_symbol} {res['adds']['first']:.2f}")
                 a2.metric("深度加仓位", f"{currency_symbol} {res['adds']['pullback']:.2f}")
+                
                 with st.expander("查看底层信号数据"):
                     st.write(f"A. 3年分位: {res['metrics']['pr_3y']*100:.1f}%")
                     st.write(f"B. RSI: {res['metrics']['rsi']:.1f}")
                     st.write(f"C. 拐头: {'是' if res['cond'][2] else '否'}")
         else:
-            st.error(f"未能获取 {ticker} 数据，请检查代码或重试。")
+            # 只有当 df 真的为空且没有抛出异常时才走这里
+            if df is not None:
+                st.warning("⚠️ 未能在 Yahoo Finance 找到该代码的数据，请检查后缀是否正确（如 A 股需加 .SS 或 .SZ）。")
