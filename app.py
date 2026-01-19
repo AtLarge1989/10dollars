@@ -18,8 +18,11 @@ def format_ticker(s):
     if not s: return "AAPL"
     s = s.strip().upper()
     if s.endswith(".HK"):
-        parts = s.split(".")
-        return f"{code.zfill(5)}.HK"
+        # 提取点号前的部分，并过滤掉非数字字符
+        raw_code = s.split(".")[0]
+        # 核心修复：定义 code 变量并补齐 5 位
+        clean_code = "".join(filter(str.isdigit, raw_code))
+        return f"{clean_code.zfill(5)}.HK"
     if "." in s and not s.endswith((".SS", ".SZ")):
         return s.replace(".", "-")
     if s.isdigit() and len(s) == 6:
