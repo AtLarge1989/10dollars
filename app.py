@@ -129,63 +129,63 @@ if st.button("🚀 生成全维度分析报告", use_container_width=True, type=
             
                  # 2. 获取股票名字 (如果 info_data 为空或没有 shortName，则回退到 ticker)
                  # 这行代码的逻辑是：A 有值吗？没有就找 B，B 也没有就显示 C
-                 stock_name = info_data.get('shortName') or info_data.get('longName') or ticker
+                stock_name = info_data.get('shortName') or info_data.get('longName') or ticker
             
                  # 3. 在页面显示大标题 (现在会显示：📈 Apple Inc. (AAPL) 分析报告)
-                 st.header(f"📈 {stock_name} ({ticker}) 分析报告")
+                st.header(f"📈 {stock_name} ({ticker}) 分析报告")
 
-                    # 指标行
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("当前价格", f"{currency_symbol} {res['last']:.2f}")
-                    c2.metric("建议动作", f"{res['sig'][1]} {res['sig'][0]}")
+                # 指标行
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("当前价格", f"{currency_symbol} {res['last']:.2f}")
+                c2.metric("建议动作", f"{res['sig'][1]} {res['sig'][0]}")
                     
-                    # 核心加固点 4: PE/PS 的安全显示
-                    pe_val = info_data.get('trailingPE')
-                    ps_val = info_data.get('priceToSalesTrailing12Months')
-                    c3.metric("市盈率 PE", f"{pe_val:.2f}" if isinstance(pe_val, (int, float)) else "—")
-                    c4.metric("市销率 PS", f"{ps_val:.2f}" if isinstance(ps_val, (int, float)) else "—")
+                # 核心加固点 4: PE/PS 的安全显示
+                pe_val = info_data.get('trailingPE')
+                ps_val = info_data.get('priceToSalesTrailing12Months')
+                c3.metric("市盈率 PE", f"{pe_val:.2f}" if isinstance(pe_val, (int, float)) else "—")
+                c4.metric("市销率 PS", f"{ps_val:.2f}" if isinstance(ps_val, (int, float)) else "—")
                     
+                st.divider()
+
+                # 报告详情 (雷达图与区间)
+                col_left, col_right = st.columns([1, 1.2])
+                with col_left:
+                    st.subheader("🎯 维度诊断雷达")
+                    labels = ['位置(A)', '情绪(B)', '动能(C)', '波动率']
+                    scores = [25 if res['cond'][0] else 8, 25 if res['cond'][1] else 10,
+                                25 if res['cond'][2] else 12, min(25, (res['metrics']['atr']/res['last'])*150)]
+                        
+                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+                    angles = [n/4 * 2*math.pi for n in range(4)]; angles += angles[:1]
+                    values = scores + scores[:1]
+                    ax.fill(angles, values, color='#1E88E5', alpha=0.3)
+                    ax.plot(angles, values, color='#1E88E5', linewidth=2, marker='o')
+                    ax.set_xticks(angles[:-1])
+                    ax.set_xticklabels(labels, fontproperties=prop)
+                    ax.set_ylim(0, 25)
+                    st.pyplot(fig)
+
+                with col_right:
+                    st.subheader("📥 分批买入建议区间")
+                    st.info(f"**诊断依据**：{res['sig'][2]}")
+                    z_cons, z_neut, z_aggr = res['zones']['conservative'], res['zones']['neutral'], res['zones']['aggressive']
+                    st.write(f"🔵 **保守区**: `{currency_symbol} {z_cons[0]:.2f} - {z_cons[1]:.2f}`")
+                    st.write(f"🟢 **标准区**: `{currency_symbol} {z_neut[0]:.2f} - {z_neut[1]:.2f}`")
+                    st.write(f"🔴 **激进区**: `{currency_symbol} {z_aggr[0]:.2f} - {z_aggr[1]:.2f}`")
                     st.divider()
-
-                    # 报告详情 (雷达图与区间)
-                    col_left, col_right = st.columns([1, 1.2])
-                    with col_left:
-                        st.subheader("🎯 维度诊断雷达")
-                        labels = ['位置(A)', '情绪(B)', '动能(C)', '波动率']
-                        scores = [25 if res['cond'][0] else 8, 25 if res['cond'][1] else 10,
-                                  25 if res['cond'][2] else 12, min(25, (res['metrics']['atr']/res['last'])*150)]
+                    st.subheader("🧱 操作手册 (加仓位)")
+                    a1, a2 = st.columns(2)
+                    a1.metric("第一加仓位", f"{currency_symbol} {res['adds']['first']:.2f}")
+                    a2.metric("深度加仓位", f"{currency_symbol} {res['adds']['pullback']:.2f}")
                         
-                        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-                        angles = [n/4 * 2*math.pi for n in range(4)]; angles += angles[:1]
-                        values = scores + scores[:1]
-                        ax.fill(angles, values, color='#1E88E5', alpha=0.3)
-                        ax.plot(angles, values, color='#1E88E5', linewidth=2, marker='o')
-                        ax.set_xticks(angles[:-1])
-                        ax.set_xticklabels(labels, fontproperties=prop)
-                        ax.set_ylim(0, 25)
-                        st.pyplot(fig)
-
-                    with col_right:
-                        st.subheader("📥 分批买入建议区间")
-                        st.info(f"**诊断依据**：{res['sig'][2]}")
-                        z_cons, z_neut, z_aggr = res['zones']['conservative'], res['zones']['neutral'], res['zones']['aggressive']
-                        st.write(f"🔵 **保守区**: `{currency_symbol} {z_cons[0]:.2f} - {z_cons[1]:.2f}`")
-                        st.write(f"🟢 **标准区**: `{currency_symbol} {z_neut[0]:.2f} - {z_neut[1]:.2f}`")
-                        st.write(f"🔴 **激进区**: `{currency_symbol} {z_aggr[0]:.2f} - {z_aggr[1]:.2f}`")
-                        st.divider()
-                        st.subheader("🧱 操作手册 (加仓位)")
-                        a1, a2 = st.columns(2)
-                        a1.metric("第一加仓位", f"{currency_symbol} {res['adds']['first']:.2f}")
-                        a2.metric("深度加仓位", f"{currency_symbol} {res['adds']['pullback']:.2f}")
-                        
-                        with st.expander("查看底层信号数据"):
-                            st.write(f"A. 3年分位: {res['metrics']['pr_3y']*100:.1f}%")
-                            st.write(f"B. RSI: {res['metrics']['rsi']:.1f}")
-                            st.write(f"C. 拐头: {'是' if res['cond'][2] else '否'}")
-                else:
-                    st.warning("数据长度不足以支持 3 年全维度分析。")
+                    with st.expander("查看底层信号数据"):
+                        st.write(f"A. 3年分位: {res['metrics']['pr_3y']*100:.1f}%")
+                        st.write(f"B. RSI: {res['metrics']['rsi']:.1f}")
+                        st.write(f"C. 拐头: {'是' if res['cond'][2] else '否'}")
             else:
-                st.error(f"无法获取 {ticker} 的历史价格数据，Yahoo 接口可能暂时受限。")
+                st.warning("数据长度不足以支持 3 年全维度分析。")
+        else:
+            st.error(f"无法获取 {ticker} 的历史价格数据，Yahoo 接口可能暂时受限。")
 
-        except Exception as e:
-            st.error(f"程序运行出错: {e}")
+    except Exception as e:
+        st.error(f"程序运行出错: {e}")
