@@ -95,6 +95,9 @@ with st.sidebar:
     st.markdown(f"**识别结果**")
     st.code(ticker)
     st.markdown(f"市场: `{mkt_name}` | 货币: `{currency_symbol}`")
+    st.divider()  # 添加一条分割线
+    st.caption("⚠️ **免责声明**")
+    st.caption("本工具仅作学习与研究之用，不对任何人的任何投资结果负责。")
 
 st.title("10 Dollars 带你 Seeking Alpha V0.9")
 
