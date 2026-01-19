@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import os, math
-import requests
+from curl_cffi import requests as curl_requests # 注意这一行
 
 # --- 1. 环境与字体配置 ---
 font_path = 'SourceHanSansSC-Regular.otf'
@@ -112,18 +112,24 @@ with st.sidebar:
 st.title("10 Dollars 带你 Seeking Alpha V0.9")
 if st.button("🚀 生成全维度分析报告", use_container_width=True, type="primary"):
     with st.spinner(f"正在解析 {ticker}..."):
-        # --- [这里是新加入的代码段] ---
-        # 1. 模拟浏览器身份
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        session = requests.Session()
-        session.headers.update(headers)
-
-        # 2. 使用 session 获取数据
-        tk = yf.Ticker(ticker, session=session)
-        df = tk.history(period="3y")
-        # --- [新代码段结束] --
+     # 使用 curl_cffi 模拟 Chrome 浏览器指纹，这是绕过 Yahoo 最新防护的关键
+        session = curl_requests.Session(impersonate="chrome")
+        
+        try:
+            tk = yf.Ticker(ticker, session=session)
+            df = tk.history(period="3y")
+            
+            if not df.empty:
+                # 后续逻辑保持不变...
+                if isinstance(df.columns, pd.MultiIndex): 
+                    df.columns = df.columns.get_level_values(0)
+                res = calculate_logic(df, tk.info)
+                
+                # ... 显示 UI 的代码 ...
+            else:
+                st.error("未获取到数据，请检查代码或稍后再试。")
+        except Exception as e:
+            st.error(f"数据抓取失败: {e}")
         if not df.empty:
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
