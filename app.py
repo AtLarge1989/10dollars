@@ -84,7 +84,7 @@ def calculate_logic(df, info):
     }
 
 # --- 4. UI 界面 ---
-st.set_page_config(page_title="Engineer Alpha V7", layout="wide")
+st.set_page_config(page_title="10 dollars Seeking Alpha", layout="wide")
 
 with st.sidebar:
     st.header("🔍 代码搜索")
