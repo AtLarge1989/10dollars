@@ -19,7 +19,7 @@ def format_ticker(s):
     s = s.strip().upper()
     if s.endswith(".HK"):
         parts = s.split(".")
-        return f"{parts[0].zfill(5)}.{parts[1]}"
+        return f"{parts[0].zfill(5)}.HK
     if "." in s and not s.endswith((".SS", ".SZ")):
         return s.replace(".", "-")
     if s.isdigit() and len(s) == 6:
