@@ -124,10 +124,15 @@ if st.button("🚀 生成全维度分析报告", use_container_width=True, type=
 
                 res = calculate_logic(df, info_data)
                 
-                if res:
-                    # 获取名称 (防御性获取)
-                    name = info_data.get('shortName') or info_data.get('longName') or ticker
-                    st.header(f"📈 {name} ({ticker}) 分析报告")
+                # 1. 计算核心指标
+                res = calculate_logic(df, info_data)
+            
+                 # 2. 获取股票名字 (如果 info_data 为空或没有 shortName，则回退到 ticker)
+                 # 这行代码的逻辑是：A 有值吗？没有就找 B，B 也没有就显示 C
+                 stock_name = info_data.get('shortName') or info_data.get('longName') or ticker
+            
+                 # 3. 在页面显示大标题 (现在会显示：📈 Apple Inc. (AAPL) 分析报告)
+                 st.header(f"📈 {stock_name} ({ticker}) 分析报告")
 
                     # 指标行
                     c1, c2, c3, c4 = st.columns(4)
