@@ -88,22 +88,19 @@ def calculate_logic(df, info):
 
 # --- 4. UI 界面 ---
 st.set_page_config(page_title="10 dollars Seeking Alpha", layout="wide")
-
-with st.sidebar:
-    st.header("🔍 代码搜索")
-    raw_input = st.text_input("代码 (AAPL, 600519)", value="AAPL", key="main_ticker_input")
-    ticker = format_ticker(raw_input)
-    currency_symbol, mkt_name = get_market_config(ticker)
-    st.divider()
-    st.markdown(f"**识别结果**")
-    st.code(ticker)
-    st.markdown(f"市场: `{mkt_name}` | 货币: `{currency_symbol}`")
-    st.divider()  # 添加一条分割线
-    st.caption("⚠️ **免责声明**")
-    st.caption("本工具仅作学习与研究之用，不对任何人的任何投资结果负责。")
-
 st.title("10 Dollars 带你 Seeking Alpha V0.9")
+# 1. 顶部输入区 (主页面)
+col1, col2 = st.columns([2, 1])
+with col1:
+    raw_input = st.text_input("代码 (AAPL, 700.HK, 600519)", value="AAPL")
+    ticker = format_ticker(raw_input)
+with col2:
+    currency_symbol, mkt_name = get_market_config(ticker)
+    st.write(f"识别结果: **{ticker}**")
+    st.write(f"市场: {mkt_name}")
 
+# 2. 免责声明 (主页面)
+st.caption("⚠️ 免责声明：本工具仅作学习与研究之用，不对任何投资结果负责。)
 if st.button("🚀 生成全维度分析报告", use_container_width=True, type="primary"):
     with st.spinner(f"正在尝试连接 Yahoo 数据库解析 {ticker}..."):
         
