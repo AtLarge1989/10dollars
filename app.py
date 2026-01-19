@@ -88,7 +88,7 @@ st.set_page_config(page_title="10 dollars Seeking Alpha", layout="wide")
 
 with st.sidebar:
     st.header("🔍 代码搜索")
-    raw_input = st.text_input("代码 (AAPL, 700.HK, 600519)", value="AAPL", key="main_ticker_input")
+    raw_input = st.text_input("代码 (AAPL, 600519)", value="AAPL", key="main_ticker_input")
     ticker = format_ticker(raw_input)
     currency_symbol, mkt_name = get_market_config(ticker)
     st.divider()
