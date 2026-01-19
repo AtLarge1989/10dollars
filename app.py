@@ -22,7 +22,7 @@ def format_ticker(s):
         raw_code = s.split(".")[0]
         # 核心修复：定义 code 变量并补齐 5 位
         clean_code = "".join(filter(str.isdigit, raw_code))
-        return f"{clean_code.zfill(5)}.HK"
+        return f"{clean_code.zfill(4)}.HK"
     if "." in s and not s.endswith((".SS", ".SZ")):
         return s.replace(".", "-")
     if s.isdigit() and len(s) == 6:
